@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Genre Classification and Emotion-Based Editing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        form {
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .output {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Music Genre Classification and Emotion-Based Editing</h1>
+
+    <!-- Form for Uploading and Classifying a Song -->
+    <form id="upload-form" enctype="multipart/form-data">
+        <h2>Upload a Song for Genre Classification</h2>
+        <label for="file">Select an Audio File:</label>
+        <input type="file" id="file" name="file" accept="audio/*" required>
+        <button type="submit">Upload and Classify</button>
+    </form>
+
+    <div class="output" id="classification-output"></div>
+
+    <!-- Form for Emotion-Based Editing -->
+    <form id="edit-form">
+        <h2>Apply Emotion-Based Editing</h2>
+        <label for="emotion">Select Emotion:</label>
+        <select id="emotion" name="emotion" required>
+            <option value="happy">Happy</option>
+            <option value="calm">Calm</option>
+            <option value="energetic">Energetic</option>
+            <option value="sad">Sad</option>
+        </select>
+        <button type="submit">Apply Emotion</button>
+    </form>
+
+    <div class="output" id="editing-output"></div>
+
+    <script>
+        // Handle file upload and genre classification
+        document.getElementById('upload-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            document.getElementById('classification-output').innerHTML = `
+                <h3>Genre Classification Result</h3>
+                <p><strong>Predicted Genre:</strong> ${result.genre}</p>
+                <p><strong>File Path:</strong> ${result.file_path}</p>
+            `;
+            // Store file path for editing
+            sessionStorage.setItem('file_path', result.file_path);
+        });
+
+        // Handle emotion-based editing
+        document.getElementById('edit-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const filePath = sessionStorage.getItem('file_path');
+            if (!filePath) {
+                alert("Please classify a song before applying emotion-based editing.");
+                return;
+            }
+            const emotion = document.getElementById('emotion').value;
+            const response = await fetch('/edit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file_path: filePath, emotion }),
+            });
+            const result = await response.json();
+            document.getElementById('editing-output').innerHTML = `
+                <h3>Emotion-Based Editing Result</h3>
+                <p><strong>Edited File:</strong> <a href="${result.edited_file}" download>Download Edited File</a></p>
+            `;
+        });
+    </script>
+</body>
+</html>
